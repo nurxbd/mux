@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash -e
 
-VERSION=20261105
+VERSION=20261110
 BASE_URL=https://kali.download
 USERNAME=kali
 
