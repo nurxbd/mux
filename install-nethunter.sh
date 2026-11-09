@@ -319,7 +319,7 @@ nethunter -r apt autoremove -y
 
 printf "\n${blue}[*] Moving custom NetHunter setup script...${reset}\n"
 
-SOURCE_FILE="$HOME/Termux-Setup/setup-nethunter.sh"
+SOURCE_FILE="$HOME/mux/setup-nethunter.sh"
 DEST_DIR="$HOME/kali-arm64/home/kali"
 DEST_FILE="$DEST_DIR/setup-nethunter.sh"
 
