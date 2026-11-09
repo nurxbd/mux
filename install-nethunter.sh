@@ -359,6 +359,3 @@ printf "${green}[+] nethunter             # To start NetHunter CLI${reset}\n"
 printf "${green}[+] nethunter -r          # To run NetHunter as root${reset}\n"
 printf "${green}[+] nh                    # Shortcut for nethunter${reset}\n\n"
 
-printf "${green}[+] Custom setup script location:${reset}\n"
-printf "${green}[+] /home/kali/setup-nethunter.sh${reset}\n\n"
-
