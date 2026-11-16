@@ -6,7 +6,7 @@ USERNAME=kali
 
 function unsupported_arch() {
     printf "${red}"
-    echo "[*] Unsupported Architecture\n\n"
+    echo -e "[*] Unsupported Architecture\n\n"
     printf "${reset}"
     exit 1
 }
@@ -248,12 +248,12 @@ function fix_uid() {
 }
 
 function print_banner() {
-    printf "${blue}##################################################\n"
+    printf "${blue}#####################################################\n"
     printf "${blue}   ____   _ ____    __ __ __ ____   _ __   _ _____ \n"
     printf "${blue}  |    \ | |    \  /  |\ \` /|    \ | |  | | |     |\n"
     printf "${blue}  |     \| |     \/   |/   \|     \| |  |_| |     \ \n"
     printf "${blue}  |__/\____|__/\__/|__/__/\_|__/\____|______|__|\__\ \n"
-    printf "${blue}#################### NetHunter ####################${reset}\n\n"
+    printf "${blue}###################### NetHunter ####################${reset}\n\n"
 }
 
 red='\033[1;31m'
@@ -284,7 +284,7 @@ fix_uid
 
 printf "\n${blue}[*] Configuring telinit for Rootless NetHunter...${reset}\n"
 
-nethunter -r bash -c '
+nethunter -r bash << 'EOF'
 if [ -e /usr/sbin/telinit ] && [ ! -L /usr/sbin/telinit ]; then
     mv /usr/sbin/telinit /usr/sbin/telinit.bak2
 fi
@@ -297,8 +297,8 @@ if [ ! -e /usr/sbin/telinit ]; then
     ln -s /usr/bin/true /usr/sbin/telinit
 fi
 
-printf "${green}[+] Telinit configuration completed.${reset}\n"
-'
+echo "[+] Telinit configuration completed."
+EOF
 
 # ==================================================
 # UPDATE NETHUNTER AND DOWNLOAD SETUP SCRIPT
