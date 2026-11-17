@@ -144,26 +144,37 @@ command -v termux-reload-settings >/dev/null 2>&1 && termux-reload-settings || t
 # ==========================================================
 # PRE-INSTALLATION ROOTFS PREPARATION
 # ==========================================================
-ROOTFS_SRC="/sdcard/mux/kali-nethunter-rootfs-minimal-arm64.tar.xz"
+ROOTFS_NAME="kali-nethunter-rootfs-minimal-arm64.tar.xz"
+SDCARD_ROOTFS="/sdcard/mux/$ROOTFS_NAME"
+HOME_ROOTFS="$HOME/$ROOTFS_NAME"
 
-info "Copying pre-downloaded NetHunter RootFS image..."
-if [ -f "$ROOTFS_SRC" ]; then
-    cp -f "$ROOTFS_SRC" "$HOME/"
-    success "RootFS successfully staged into home directory ($HOME/)."
+info "Checking RootFS image status..."
+
+if [ -f "$HOME_ROOTFS" ]; then
+    success "RootFS already exists in home directory ($HOME_ROOTFS). Skipping copy."
 else
-    error "File not found: $ROOTFS_SRC"
-    error "Ensure storage access is granted and the file is placed in /sdcard/mux/."
-    exit 1
+    info "Copying pre-downloaded NetHunter RootFS image from storage..."
+    if [ -f "$SDCARD_ROOTFS" ]; then
+        cp -f "$SDCARD_ROOTFS" "$HOME/"
+        success "RootFS successfully staged into home directory ($HOME/)."
+    else
+        error "File not found: $SDCARD_ROOTFS"
+        error "Ensure storage access is granted and the file is placed in /sdcard/mux/."
+        exit 1
+    fi
 fi
 
 # ==========================================================
 # RUN NETHUNTER INSTALLER
 # ==========================================================
+cd "$HOME/mux"
+
 if [ -f "install-nethunter.sh" ]; then
+    info "Launching install-nethunter.sh from $(pwd)..."
     chmod +x install-nethunter.sh
     bash install-nethunter.sh
 else
-    error "install-nethunter.sh was not found inside the repository."
+    error "install-nethunter.sh was not found inside ~/mux/."
     exit 1
 fi
 
