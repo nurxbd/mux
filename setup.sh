@@ -16,22 +16,10 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Logging Functions
-info() {
-    printf "${BLUE}[INFO]${NC} %s\n" "$1"
-}
-
-success() {
-    printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"
-}
-
-warning() {
-    printf "${YELLOW}[WARNING]${NC} %s\n" "$1"
-}
-
-error() {
-    printf "${RED}[ERROR]${NC} %s\n" "$1"
-}
+info()    { printf "${BLUE}[INFO]${NC} %s\n" "$1"; }
+success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }
+warning() { printf "${YELLOW}[WARNING]${NC} %s\n" "$1"; }
+error()   { printf "${RED}[ERROR]${NC} %s\n" "$1"; }
 
 clear
 
@@ -60,27 +48,31 @@ else
 fi
 
 info "Updating Termux packages..."
+apt-get update -y
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold"
 
-pkg update -y
-pkg upgrade -y
-
-apt autoclean || warning "apt autoclean skipped."
-apt clean || warning "apt clean skipped."
+apt-get autoclean -y || warning "apt autoclean skipped."
+apt-get clean -y || warning "apt clean skipped."
 
 info "Installing essential packages..."
-
 pkg install -y \
     curl wget git proot tar xz-utils \
-    coreutils termux-tools
-
-pkg install -y \
-    zip unzip openssl findutils grep \
-    sed gawk which file nano procps
+    coreutils termux-tools zip unzip \
+    openssl findutils grep sed gawk \
+    file nano procps
 
 success "Termux packages installed."
 
-info "Requesting Android storage permission..."
-termux-setup-storage || warning "Storage permission command returned an error."
+# ==========================================================
+# STORAGE PERMISSION CHECK
+# ==========================================================
+if [ ! -d "$HOME/storage/shared" ]; then
+    info "Requesting Android storage permission. Please tap 'Allow'..."
+    termux-setup-storage || warning "Storage permission command returned an error."
+    sleep 4
+fi
 
 # ==========================================================
 # BACKUP EXISTING CONFIGURATIONS
@@ -89,33 +81,36 @@ info "Checking for existing configuration files to backup..."
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$HOME/termux_backups/backup_$TIMESTAMP"
-BACKUP_NEEDED=false
 
 if [ -f "$HOME/.bashrc" ] || [ -f "$HOME/.termux/font.ttf" ] || [ -f "$HOME/.termux/colors.properties" ]; then
-    BACKUP_NEEDED=true
     mkdir -p "$BACKUP_DIR"
-fi
 
-if [ "$BACKUP_NEEDED" = true ]; then
     if [ -f "$HOME/.bashrc" ]; then
         cp "$HOME/.bashrc" "$BACKUP_DIR/.bashrc.bak"
         info "Backed up existing .bashrc to $BACKUP_DIR/.bashrc.bak"
     fi
 
-    if [ -d "$HOME/.termux" ]; then
-        [ -f "$HOME/.termux/font.ttf" ] && cp "$HOME/.termux/font.ttf" "$BACKUP_DIR/font.ttf.bak"
-        [ -f "$HOME/.termux/colors.properties" ] && cp "$HOME/.termux/colors.properties" "$BACKUP_DIR/colors.properties.bak"
-        info "Backed up existing Termux styling files to $BACKUP_DIR/"
+    if [ -f "$HOME/.termux/font.ttf" ]; then
+        cp "$HOME/.termux/font.ttf" "$BACKUP_DIR/font.ttf.bak"
+        info "Backed up existing font.ttf"
     fi
+
+    if [ -f "$HOME/.termux/colors.properties" ]; then
+        cp "$HOME/.termux/colors.properties" "$BACKUP_DIR/colors.properties.bak"
+        info "Backed up existing colors.properties"
+    fi
+
     success "Backup completed successfully."
 else
     info "No existing files to back up. Proceeding fresh."
 fi
-# ==========================================================
 
+# ==========================================================
+# CLONE & APPLY TERMUX CONFIGS
+# ==========================================================
 info "Cloning Termux-Setup repository..."
 
-# Safely handle pre-existing directory to avoid git clone failures
+cd "$HOME"
 if [ -d "mux" ]; then
     warning "'mux' directory already exists. Removing it..."
     rm -rf mux
@@ -124,29 +119,46 @@ fi
 git clone --depth 1 https://github.com/nurxbd/mux.git
 cd mux
 
-# Ensure target configuration directories exist
-mkdir -p ~/.termux
+mkdir -p "$HOME/.termux"
 
-# Copy configuration files safely
-[ -f "font.ttf" ] && cp font.ttf ~/.termux/ || warning "font.ttf not found."
-[ -f "colors.properties" ] && cp colors.properties ~/.termux/ || warning "colors.properties not found."
-[ -f "bash" ] && cp bash ~/.bashrc || warning "bash configuration file not found."
+if [ -f "font.ttf" ]; then
+    cp font.ttf "$HOME/.termux/"
+else
+    warning "font.ttf not found."
+fi
+
+if [ -f "colors.properties" ]; then
+    cp colors.properties "$HOME/.termux/"
+else
+    warning "colors.properties not found."
+fi
+
+if [ -f "bash" ]; then
+    cp bash "$HOME/.bashrc"
+else
+    warning "bash configuration file not found."
+fi
+
+command -v termux-reload-settings >/dev/null 2>&1 && termux-reload-settings || true
 
 # ==========================================================
 # PRE-INSTALLATION ROOTFS PREPARATION
 # ==========================================================
+ROOTFS_SRC="/sdcard/mux/kali-nethunter-rootfs-minimal-arm64.tar.xz"
+
 info "Copying pre-downloaded NetHunter RootFS image..."
-if [ -f "/sdcard/mux/kali-nethunter-rootfs-minimal-arm64.tar.xz" ]; then
-    cp -r /sdcard/mux/kali-nethunter-rootfs-minimal-arm64.tar.xz ~/
-    success "RootFS successfully staged into home directory (~/)."
+if [ -f "$ROOTFS_SRC" ]; then
+    cp -f "$ROOTFS_SRC" "$HOME/"
+    success "RootFS successfully staged into home directory ($HOME/)."
 else
-    error "File not found: /sdcard/mux/kali-nethunter-rootfs-minimal-arm64.tar.xz"
-    error "Please make sure you have allowed storage access and the file is placed correctly."
+    error "File not found: $ROOTFS_SRC"
+    error "Ensure storage access is granted and the file is placed in /sdcard/mux/."
     exit 1
 fi
-# ==========================================================
 
-# Run NetHunter installer
+# ==========================================================
+# RUN NETHUNTER INSTALLER
+# ==========================================================
 if [ -f "install-nethunter.sh" ]; then
     chmod +x install-nethunter.sh
     bash install-nethunter.sh
