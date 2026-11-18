@@ -120,7 +120,7 @@ function get_rootfs() {
         fi
     fi
 
-    printf "${blue}[*] Downloading rootfs...${reset}\n\n"
+    printf "${green}[*] Downloading rootfs...${reset}\n\n"
     get_url
 
     axel -o "${IMAGE_NAME}" "${ROOTFS_URL}" || wget --continue "${ROOTFS_URL}"
@@ -162,7 +162,7 @@ function get_sha() {
 
 function extract_rootfs() {
     if [ -z "${KEEP_CHROOT:-}" ]; then
-        printf "\n${blue}[*] Extracting rootfs... ${reset}\n\n"
+        printf "\n${green}[*] Extracting rootfs... ${reset}\n\n"
         proot --link2symlink tar -xf "$IMAGE_NAME" 2>/dev/null || :
     else
         printf "${yellow}[!] Using existing rootfs directory${reset}\n"
@@ -248,12 +248,12 @@ function fix_uid() {
 }
 
 function print_banner() {
-    printf "${blue}####################################################### \n"
-    printf "${blue}#   ____   _ ____    __ __ __ ____   _ __   _ _____   # \n"
-    printf "${blue}#  |    \ | |    \  /  |\ \` /|    \ | |  | | |     |  # \n"
-    printf "${blue}#  |     \| |     \/   |/   \|     \| |  |_| |     \  # \n"
-    printf "${blue}#  |__/\____|__/\__/|__/__/\_|__/\____|______|__|\__\ # \n"
-    printf "${blue}###################### NetHunter ######################${reset}\n\n"
+    printf "${green}####################################################### \n"
+    printf "${green}#   ____   _ ____    __ __ __ ____   _ __   _ _____   # \n"
+    printf "${green}#  |    \ | |    \  /  |\ \` /|    \ | |  | | |     |  # \n"
+    printf "${green}#  |     \| |     \/   |/   \|     \| |  |_| |     \  # \n"
+    printf "${green}#  |__/\____|__/\__/|__/__/\_|__/\____|______|__|\__\ # \n"
+    printf "${green}###################### NetHunter ######################${reset}\n\n"
 }
 
 red='\033[1;31m'
@@ -276,13 +276,13 @@ extract_rootfs
 create_launcher
 cleanup
 
-printf "\n${blue}[*] Configuring NetHunter for Termux ...${reset}\n"
+printf "\n${green}[*] Configuring NetHunter for Termux ...${reset}\n"
 
 fix_profile_bash
 fix_sudo
 fix_uid
 
-printf "\n${blue}[*] Configuring telinit for Rootless NetHunter...${reset}\n"
+printf "\n${green}[*] Configuring telinit for Rootless NetHunter...${reset}\n"
 
 nethunter -r bash << 'EOF'
 if [ -e /usr/sbin/telinit ] && [ ! -L /usr/sbin/telinit ]; then
@@ -304,7 +304,7 @@ EOF
 # UPDATE NETHUNTER AND DOWNLOAD SETUP SCRIPT
 # ==================================================
 
-printf "\n${blue}[*] Updating NetHunter and installing packages...${reset}\n"
+printf "\n${green}[*] Updating NetHunter and installing packages...${reset}\n"
 nethunter -r touch /root/.hushlogin
 nethunter -r touch /home/kali/.hushlogin
 
@@ -319,9 +319,9 @@ nethunter -r apt autoremove -y
 
 printf "\n${blue}[*] Moving custom NetHunter setup script...${reset}\n"
 
-SOURCE_FILE="$HOME/mux/setup-nethunter.sh"
+SOURCE_FILE="$HOME/mux/setup-tools.sh"
 DEST_DIR="$HOME/kali-arm64/home/kali"
-DEST_FILE="$DEST_DIR/setup-nethunter.sh"
+DEST_FILE="$DEST_DIR/setup-tools.sh"
 
 if [ -f "$SOURCE_FILE" ]; then
 
@@ -329,15 +329,15 @@ if [ -f "$SOURCE_FILE" ]; then
 
     if mv "$SOURCE_FILE" "$DEST_FILE"; then
 
-        nethunter -r chmod 755 /home/kali/setup-nethunter.sh
-        nethunter -r chown kali:kali /home/kali/setup-nethunter.sh
+        nethunter -r chmod 755 /home/kali/setup-tools.sh
+        nethunter -r chown kali:kali /home/kali/setup-tools.sh
 
-        printf "${green}[+] setup-nethunter.sh moved successfully.${reset}\n"
-        printf "${green}[+] Executable permission configured.${reset}\n"
-        printf "${green}[+] Ownership configured: kali:kali${reset}\n"
+        printf "${blue}[+] setup-tools.sh moved successfully.${reset}\n"
+        printf "${blue}[+] Executable permission configured.${reset}\n"
+        printf "${blue}[+] Ownership configured: kali:kali${reset}\n"
 
     else
-        printf "${red}[!] Failed to move setup-nethunter.sh.${reset}\n"
+        printf "${red}[!] Failed to move setup-tools.sh.${reset}\n"
     fi
 
 else
