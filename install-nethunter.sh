@@ -250,10 +250,10 @@ function fix_uid() {
 function print_banner() {
     printf "${blue}####################################################### \n"
     printf "${blue}#   ____   _ ____    __ __ __ ____   _ __   _ _____   # \n"
-    printf "${blue}#  |    \ | |    \  /  |\ \` /|    \ | |  | | |     | # \n"
+    printf "${blue}#  |    \ | |    \  /  |\ \` /|    \ | |  | | |     |  # \n"
     printf "${blue}#  |     \| |     \/   |/   \|     \| |  |_| |     \  # \n"
     printf "${blue}#  |__/\____|__/\__/|__/__/\_|__/\____|______|__|\__\ # \n"
-    printf "${blue}######################\n" printf "${red}NetHunter\n" printf "${blue}####################${reset}\n\n"
+    printf "${blue}###################### NetHunter ######################${reset}\n\n"
 }
 
 red='\033[1;31m'
